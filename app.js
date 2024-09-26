@@ -1,6 +1,8 @@
 var express = require('express');
 var app = express();
 app.set('view engine','ejs');
+
+app.engine('ejs', require('ejs').__express);
 app.use('/public', express.static('public'));
 
 //PAGES
