@@ -36,7 +36,7 @@
                 <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
                   <div class="accordion-body">
                     <% if (typeof emoIdData !== 'undefined' && emoIdData['ag'] && emoIdData['ag'].length > 0) { %>
-                      <table border="1">
+                      <table class="table table-borderless">
                           <tbody>
                               <% emoIdData['ag'].forEach(function(emotion) { %>
                                   <tr>
@@ -61,7 +61,7 @@
                 <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
                   <div class="accordion-body">
                     <% if (typeof emoIdData !== 'undefined' && emoIdData['br'] && emoIdData['br'].length > 0) { %>
-                      <table border="1">
+                      <table class="table table-borderless">
                           <tbody>
                               <% emoIdData['br'].forEach(function(emotion) { %>
                                   <tr>
@@ -86,7 +86,7 @@
                 <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
                   <div class="accordion-body">
                     <% if (typeof emoIdData !== 'undefined' && emoIdData['fr'] && emoIdData['fr'].length > 0) { %>
-                      <table border="1">
+                      <table class="table table-borderless">
                           <tbody>
                               <% emoIdData['fr'].forEach(function(emotion) { %>
                                   <tr>
@@ -111,7 +111,7 @@
               <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
                 <div class="accordion-body">
                   <% if (typeof emoIdData !== 'undefined' && emoIdData['sc'] && emoIdData['sc'].length > 0) { %>
-                    <table border="1">
+                    <table class="table table-borderless">
                         <tbody>
                             <% emoIdData['sc'].forEach(function(emotion) { %>
                                 <tr>
@@ -136,7 +136,7 @@
             <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
               <div class="accordion-body">
                 <% if (typeof emoIdData !== 'undefined' && emoIdData['sd'] && emoIdData['sd'].length > 0) { %>
-                  <table border="1">
+                  <table class="table table-borderless">
                       <tbody>
                           <% emoIdData['sd'].forEach(function(emotion) { %>
                               <tr>
