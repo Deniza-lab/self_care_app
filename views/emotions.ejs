@@ -13,7 +13,7 @@
 
 <body class="bg-info-subtle">
     <div class="container text-center">
-        <div class="row">Emotions list</div>
+        <div class="row"><h1 class="display-1">Emotions list</h1></div>
         <div class="row">
           <div class="col">
             Header</div>
@@ -30,7 +30,7 @@
               <div class="accordion-item ">
                 <h2 class="accordion-header">
                   <button class="accordion-button collapsed bg-danger-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                    Anger
+                    <h1 class="display-6">Anger</h1>
                   </button>
                 </h2>
                 <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
@@ -38,6 +38,7 @@
                     <% if (typeof emoIdData !== 'undefined' && emoIdData['ag'] && emoIdData['ag'].length > 0) { %>
                       <table class="table table-borderless">
                           <tbody>
+                             
                               <% emoIdData['ag'].forEach(function(emotion) { %>
                                   <tr>
                                       <td><%= emotion %></td>
@@ -55,7 +56,7 @@
               <div class="accordion-item">
                 <h2 class="accordion-header">
                   <button class="accordion-button collapsed bg-secondary-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                    Boredom
+                    <h1 class="display-6">Boredom</h1>
                   </button>
                 </h2>
                 <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
@@ -80,7 +81,7 @@
               <div class="accordion-item">
                 <h2 class="accordion-header">
                   <button class="accordion-button collapsed bg-warning-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                    Fear
+                    <h1 class="display-6">Fear</h1>
                   </button>
                 </h2>
                 <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
@@ -105,7 +106,7 @@
               <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                  Self-conscious
+                  <h1 class="display-6">Self-conscious</h1>
                 </button>
               </h2>
               <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
@@ -130,7 +131,7 @@
             <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed bg-primary-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-                Sadness
+                <h1 class="display-6">Sadness</h1>
               </button>
             </h2>
             <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
