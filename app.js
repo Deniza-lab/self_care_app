@@ -22,7 +22,7 @@ app.get('/emotions', function (req, res) {
     const placeholders = emoIds.map(() => '?').join(', ');
     const sql = `SELECT emo_id, emotion FROM emotions WHERE emo_id IN (${placeholders})`;
 
-    console.log('Executing SQL:', sql, emoIds); // Log the SQL query and parameters
+    console.log('Executing SQL:', sql, emoIds); 
 
     conn.query(sql, emoIds, function(err, result) {
         if (err) {
@@ -30,13 +30,10 @@ app.get('/emotions', function (req, res) {
             return res.status(500).send('Database error');
         }
 
-        console.log('Raw result:', result); // Log the raw result from the database
-
-        // Check if result is not empty
         if (result.length === 0) {
             console.log('No emotions found for the specified emo_ids.');
         } else {
-            console.log('Fetched results:', JSON.stringify(result, null, 2)); // Log structured result
+            console.log('Fetched results:', JSON.stringify(result, null, 2)); 
         }
 
         // Create emoIdData object to organize emotions by emo_id
@@ -47,8 +44,6 @@ app.get('/emotions', function (req, res) {
             acc[row.emo_id].push(row.emotion);
             return acc;
         }, {});
-
-        console.log('emoIdData:', emoIdData); // Log structured data
 
         // Render the EJS file with organized data
         res.render('emotions', { title: "Emotions Lists", emoIdData });
@@ -64,6 +59,28 @@ app.get('/skills', function (req, res) {
             return res.status(500).send('Database error');
         }
         res.render('skills', { title: '', skills: result });
+    });
+});
+
+//SKILLS FOR ALL EMO GROUPS
+app.get('/skills/:emo_id', function (req, res) {
+    const emoId = req.params.emo_id;
+
+    const sql = `
+        SELECT skills.skill_name, skills.skill_info, emotions.emotion, emotions.id 
+        FROM emotions_skills 
+        JOIN skills ON emotions_skills.skill_id = skills.skill_id 
+        JOIN emotions ON emotions_skills.emo_id = emotions.emo_id 
+        WHERE emotions_skills.emo_id = ?`;
+
+    conn.query(sql, [emoId], function (err, result) {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).send('Database error');
+        }
+        console.log(result);
+        const emotionName = result.length > 0 ? result[0].emotion : emoId; 
+        res.render('skills', { title: 'Skills for ' + emotionName, skills: result });
     });
 });
 

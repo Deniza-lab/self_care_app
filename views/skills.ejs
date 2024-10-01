@@ -29,12 +29,18 @@
             </tr>
         </thead>
         <tbody>
-            <% skills.forEach(function(skill) { %>
+            <% if (skills && skills.length > 0) { %>
+                <% skills.forEach(function(skill) { %>
+                    <tr>
+                        <td><%= skill.skill_name %></td>
+                        <td><%= skill.skill_info %></td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
                 <tr>
-                    <td><%= skill.skill_name %></td>
-                    <td><%= skill.skill_info %></td>
+                    <td colspan="2">No skills found for this emotion.</td>
                 </tr>
-            <% }); %>
+            <% } %>
         </tbody>
     </table>
     <a href="/emotions" class="btn btn-secondary">Back to Emotions</a>
