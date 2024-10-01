@@ -55,9 +55,17 @@ app.get('/emotions', function (req, res) {
     });
 });
 //SKILLS PAGE
-app.get('/skills', function (req, res){
-    res.render("skills"); 
-}); 
+app.get('/skills', function (req, res) {
+    const sql = 'SELECT * FROM skills';
+
+    conn.query(sql, function (err, result) {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).send('Database error');
+        }
+        res.render('skills', { title: '', skills: result });
+    });
+});
 
 app.listen(3000);
 console.log('Node app is running on port 3000');

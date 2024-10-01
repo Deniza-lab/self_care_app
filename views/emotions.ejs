@@ -42,6 +42,11 @@
                               <% emoIdData['ag'].forEach(function(emotion) { %>
                                   <tr>
                                       <td><%= emotion %></td>
+                                      <td>
+
+                                        <!--BUTTON-->
+                                        <a href="/skills/ag" class="btn btn-primary">View Skills</a>
+                                    </td>
                                   </tr>
                               <% }); %>
                           </tbody>
@@ -146,20 +151,30 @@
                           <% }); %>
                       </tbody>
                   </table>
+                  
               <% } else { %>
                   <p>No emotions found for ID: ag.</p>
               <% } %>
-
+                      
               </div>
+              
             </div>
+            
           </div>
+
             </div>
 
           </div>
+          
 
         </div>
+
       </div>
-    
-    
+    <!--END OF ACCORDION-->
+<div class="d-grid gap-2 col-5 mx-auto">
+
+                  <a href="/skills" class="btn btn-primary">All skills</a> 
+                </div>
+
     </body>
 </html>
