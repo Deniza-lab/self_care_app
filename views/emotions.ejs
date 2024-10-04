@@ -30,7 +30,7 @@
               <% for (let emoId in emoIdData) { %>
                 <div class="accordion-item">
                   <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= emoId %>" aria-expanded="false" aria-controls="collapse<%= emoId %>">
+                    <button class="accordion-button collapsed <%= emoId === 'sd' ? 'bg-primary-subtle' : emoId === 'ag' ? 'bg-danger-subtle' : emoId === 'br' ? 'bg-secondary-subtle' : emoId === 'fr' ? 'bg-warning-subtle' : emoId === 'sc' ? 'bg-success-subtle' : 'bg-info-subtle' %>" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= emoId %>" aria-expanded="false" aria-controls="collapse<%= emoId %>">
                       <h1 class="display-6"><%= emoIdData[emoId][0].emo_categ %></h1> <!-- Dynamic Category Name -->
                     </button>
                   </h2>
@@ -43,7 +43,7 @@
                               <tr>
                                 <td><%= emotion.emotion %></td>
                                 <td>
-                                  <a href="/skills/<%= emotion.id %>?emo_id=<%= emotion.emo_id %>" class="btn btn-primary">
+                                  <a href="/skills/<%= emotion.emo_id %>?emo_id=<%= emotion.emo_id %>&emotion_name=<%= emotion.emotion %>" class="btn btn-primary">
                                     View Skills
                                   </a>
                                 </td>

@@ -58,47 +58,48 @@ app.get('/skills', function (req, res) {
 
 //SKILLS FOR ALL EMO GROUPS
 app.get('/skills/:emo_id', function (req, res) {
-    const emotionId = req.params.id; // Get the specific emotion ID
-    const emoId = req.query.emo_id; // Get the emo_id from the query parameters
+    const emoId = req.params.emo_id; // Get the emo_id from the URL parameters
+    const emotionName = req.query.emotion_name; // Get the emotion name from the query parameters
 
-   // Step 1: Fetch the emotions that belong to this emo_id category
-   const sqlEmotion = `
-   SELECT emotion 
-   FROM emotions 
-   WHERE emo_id = ?`;
+    // Step 1: Fetch the emotions that belong to this emo_id category
+    const sqlEmotion = `
+    SELECT emotion 
+    FROM emotions 
+    WHERE emo_id = ?`;
 
-   conn.query(sqlEmotion, [emotionId], function (err, emotionResult) {
-   if (err) {
-       console.error('Database error:', err);
-       return res.status(500).send('Database error');
-   }
+    conn.query(sqlEmotion, [emoId], function (err, emotionResult) {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).send('Database error');
+        }
 
-   if (emotionResult.length === 0) {
-       return res.status(404).send('No emotions found for this category');
-   }
+        if (emotionResult.length === 0) {
+            return res.status(404).send('No emotions found for this category');
+        }
 
-   const emotionName = emotionResult[0].emotion;  // Use the first emotion for the title
+        // Use the first emotion for the title if you still want it from the database
+        const emotionTitle = emotionResult[0].emotion; 
 
+        // Step 2: Fetch skills associated with the given emo_id
         const sqlSkills = `
         SELECT skills.skill_name, skills.skill_info 
         FROM emotions_skills 
         JOIN skills ON emotions_skills.skill_id = skills.skill_id 
         WHERE emotions_skills.emo_id = ?`; // This filters by emo_id
 
-    conn.query(sqlSkills, [emoId], function (err, skillsResult) {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).send('Database error');
-        }
+        conn.query(sqlSkills, [emoId], function (err, skillsResult) {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).send('Database error');
+            }
 
-        // Render the page with the emotion name in the title and skills in the content
-        res.render('skills', { 
-            title: 'Skills for ' + emotionName, 
-            skills: skillsResult // Pass the filtered skills to the view 
+            // Render the page with the emotion name in the title and skills in the content
+            res.render('skills', { 
+                title: 'Skills to manage feeling ' + (emotionName || emotionTitle), // Use the emotion name from query or database
+                skills: skillsResult // Pass the filtered skills to the view 
+            });
         });
     });
 });
-});
-
 app.listen(3000);
 console.log('Node app is running on port 3000');
