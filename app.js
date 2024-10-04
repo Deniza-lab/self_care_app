@@ -18,35 +18,29 @@ res.render("home");
 }); 
 //EMOTIONS PAGE  
 app.get('/emotions', function (req, res) {
-    const emoIds = ['ag', 'br', 'fr', 'sc', 'sd'];
-    const placeholders = emoIds.map(() => '?').join(', ');
-    const sql = `SELECT emo_id, emotion FROM emotions WHERE emo_id IN (${placeholders})`;
+    const sql = `
+        SELECT emotions.emotion, emotions.emo_id, emotions_categories.emo_categ 
+        FROM emotions 
+        JOIN emotions_categories ON emotions.emo_id = emotions_categories.emo_id
+    `;
 
-    console.log('Executing SQL:', sql, emoIds); 
-
-    conn.query(sql, emoIds, function(err, result) {
+    conn.query(sql, function (err, result) {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).send('Database error');
         }
 
-        if (result.length === 0) {
-            console.log('No emotions found for the specified emo_ids.');
-        } else {
-            console.log('Fetched results:', JSON.stringify(result, null, 2)); 
-        }
-
-        // Create emoIdData object to organize emotions by emo_id
-        const emoIdData = result.reduce((acc, row) => {
-            if (!acc[row.emo_id]) {
-                acc[row.emo_id] = [];
+        // Group emotions by emo_id for easier access in the template
+        const emoIdData = {};
+        result.forEach(row => {
+            if (!emoIdData[row.emo_id]) {
+                emoIdData[row.emo_id] = [];
             }
-            acc[row.emo_id].push(row.emotion);
-            return acc;
-        }, {});
+            emoIdData[row.emo_id].push(row);
+        });
 
-        // Render the EJS file with organized data
-        res.render('emotions', { title: "Emotions Lists", emoIdData });
+        // Render the emotions page and pass the data to the template
+        res.render('emotions', { emoIdData });
     });
 });
 //SKILLS PAGE
@@ -64,24 +58,46 @@ app.get('/skills', function (req, res) {
 
 //SKILLS FOR ALL EMO GROUPS
 app.get('/skills/:emo_id', function (req, res) {
-    const emoId = req.params.emo_id;
+    const emotionId = req.params.id; // Get the specific emotion ID
+    const emoId = req.query.emo_id; // Get the emo_id from the query parameters
 
-    const sql = `
-        SELECT skills.skill_name, skills.skill_info, emotions.emotion, emotions.id 
+   // Step 1: Fetch the emotions that belong to this emo_id category
+   const sqlEmotion = `
+   SELECT emotion 
+   FROM emotions 
+   WHERE emo_id = ?`;
+
+   conn.query(sqlEmotion, [emotionId], function (err, emotionResult) {
+   if (err) {
+       console.error('Database error:', err);
+       return res.status(500).send('Database error');
+   }
+
+   if (emotionResult.length === 0) {
+       return res.status(404).send('No emotions found for this category');
+   }
+
+   const emotionName = emotionResult[0].emotion;  // Use the first emotion for the title
+
+        const sqlSkills = `
+        SELECT skills.skill_name, skills.skill_info 
         FROM emotions_skills 
         JOIN skills ON emotions_skills.skill_id = skills.skill_id 
-        JOIN emotions ON emotions_skills.emo_id = emotions.emo_id 
-        WHERE emotions_skills.emo_id = ?`;
+        WHERE emotions_skills.emo_id = ?`; // This filters by emo_id
 
-    conn.query(sql, [emoId], function (err, result) {
+    conn.query(sqlSkills, [emoId], function (err, skillsResult) {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).send('Database error');
         }
-        console.log(result);
-        const emotionName = result.length > 0 ? result[0].emotion : emoId; 
-        res.render('skills', { title: 'Skills for ' + emotionName, skills: result });
+
+        // Render the page with the emotion name in the title and skills in the content
+        res.render('skills', { 
+            title: 'Skills for ' + emotionName, 
+            skills: skillsResult // Pass the filtered skills to the view 
+        });
     });
+});
 });
 
 app.listen(3000);

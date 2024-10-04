@@ -26,153 +26,39 @@
           <div class="row">
             <div class="col">
             <!--EMO ACCORDION-->
-            <div class="accordion " id="accordionExample">
-              <div class="accordion-item ">
-                <h2 class="accordion-header">
-                  <button class="accordion-button collapsed bg-danger-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                    <h1 class="display-6">Anger</h1>
-                  </button>
-                </h2>
-                <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
-                  <div class="accordion-body">
-                    <% if (typeof emoIdData !== 'undefined' && emoIdData['ag'] && emoIdData['ag'].length > 0) { %>
-                      <table class="table table-borderless">
+            <div class="accordion" id="accordionExample">
+              <% for (let emoId in emoIdData) { %>
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= emoId %>" aria-expanded="false" aria-controls="collapse<%= emoId %>">
+                      <h1 class="display-6"><%= emoIdData[emoId][0].emo_categ %></h1> <!-- Dynamic Category Name -->
+                    </button>
+                  </h2>
+                  <div id="collapse<%= emoId %>" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                      <% if (emoIdData[emoId] && emoIdData[emoId].length > 0) { %>
+                        <table class="table table-borderless">
                           <tbody>
-                             
-                              <% emoIdData['ag'].forEach(function(emotion) { %>
-                                  <tr>
-                                      <td>
-                                        
-                                        <%= emotion %>
-                                      </td>
-                                      <td>
-
-                                        <!--BUTTON-->
-                                        <a href="/skills/ag" class="btn btn-primary">View Skills</a>
-                                    </td>
-                                  </tr>
-                              <% }); %>
-                          </tbody>
-                      </table>
-                  <% } else { %>
-                      <p>No emotions found for ID: ag.</p>
-                  <% } %>
-
-                  </div>
-                </div>
-              </div>
-              <div class="accordion-item">
-                <h2 class="accordion-header">
-                  <button class="accordion-button collapsed bg-secondary-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                    <h1 class="display-6">Boredom</h1>
-                  </button>
-                </h2>
-                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
-                  <div class="accordion-body">
-                    <% if (typeof emoIdData !== 'undefined' && emoIdData['br'] && emoIdData['br'].length > 0) { %>
-                      <table class="table table-borderless">
-                          <tbody>
-                              <% emoIdData['br'].forEach(function(emotion) { %>
-                                  <tr>
-                                      <td><%= emotion %></td>
-                                  </tr>
-                              <% }); %>
-                          </tbody>
-                      </table>
-                  <% } else { %>
-                      <p>No emotions found for ID: ag.</p>
-                  <% } %>
-  
-                  </div>
-                </div>
-              </div>
-              <div class="accordion-item">
-                <h2 class="accordion-header">
-                  <button class="accordion-button collapsed bg-warning-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                    <h1 class="display-6">Fear</h1>
-                  </button>
-                </h2>
-                <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
-                  <div class="accordion-body">
-                    <% if (typeof emoIdData !== 'undefined' && emoIdData['fr'] && emoIdData['fr'].length > 0) { %>
-                      <table class="table table-borderless">
-                          <tbody>
-                              <% emoIdData['fr'].forEach(function(emotion) { %>
-                                  <tr>
-                                      <td><%= emotion %></td>
-                                  </tr>
-                              <% }); %>
-                          </tbody>
-                      </table>
-                  <% } else { %>
-                      <p>No emotions found for ID: ag.</p>
-                  <% } %>
-  
-                  </div>
-                </div>
-              </div>
-              <div class="accordion-item">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed bg-success-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                  <h1 class="display-6">Self-conscious</h1>
-                </button>
-              </h2>
-              <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
-                <div class="accordion-body">
-                  <% if (typeof emoIdData !== 'undefined' && emoIdData['sc'] && emoIdData['sc'].length > 0) { %>
-                    <table class="table table-borderless">
-                        <tbody>
-                            <% emoIdData['sc'].forEach(function(emotion) { %>
-                                <tr>
-                                    <td><%= emotion %></td>
-                                </tr>
-                            <% }); %>
-                        </tbody>
-                    </table>
-                <% } else { %>
-                    <p>No emotions found for ID: ag.</p>
-                <% } %>
-
-                </div>
-              </div>
-            </div>
-            <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed bg-primary-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-                <h1 class="display-6">Sadness</h1>
-              </button>
-            </h2>
-            <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionExample" >
-              <div class="accordion-body">
-                <% if (typeof emoIdData !== 'undefined' && emoIdData['sd'] && emoIdData['sd'].length > 0) { %>
-                  <table class="table table-borderless">
-                      <tbody>
-                          <% emoIdData['sd'].forEach(function(emotion) { %>
+                            <% emoIdData[emoId].forEach(function(emotion) { %>
                               <tr>
-                                  <td><%= emotion %></td>
+                                <td><%= emotion.emotion %></td>
+                                <td>
+                                  <a href="/skills/<%= emotion.id %>?emo_id=<%= emotion.emo_id %>" class="btn btn-primary">
+                                    View Skills
+                                  </a>
+                                </td>
                               </tr>
-                          <% }); %>
-                      </tbody>
-                  </table>
-                  
-              <% } else { %>
-                  <p>No emotions found for ID: ag.</p>
+                            <% }); %>
+                          </tbody>
+                        </table>
+                      <% } else { %>
+                        <p>No emotions found for ID: <%= emoId %>.</p>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
               <% } %>
-                      
-              </div>
-              
             </div>
-            
-          </div>
-
-            </div>
-
-          </div>
-          
-
-        </div>
-
-      </div>
     <!--END OF ACCORDION-->
 <div class="d-grid gap-2 col-5 mx-auto">
 
