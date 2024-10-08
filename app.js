@@ -8,14 +8,62 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }))
-
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); 
 app.engine('ejs', require('ejs').__express);
 app.use('/public', express.static('public'));
+
 
 //PAGES
 app.get('/', function (req, res){
 res.render("home");
 }); 
+//Login + Register
+app.get('/auth/login', function(req, res) {
+	res.render('auth/login.ejs');
+});
+app.post('/auth/login', function(req, res) {
+    console.log("Login attempt:", req.body);
+	const { email, password } = req.body;
+	if (email && password) {
+		conn.query('SELECT * FROM users WHERE email = ? AND password = ?', [email, password], function(error, results, fields) {
+			if (error) throw error;
+			console.log(results.length);
+			if (results.length > 0) {
+				req.session.loggedin = true;			
+				req.session.email = email;
+				req.session.userrole = results[0].userrole;
+				console.log(results.length);
+				console.log("User email :",results[0].email);
+				console.log("User role :",results[0].userrole)			
+				res.redirect('/user/myProfile');
+			} else {
+				res.send('Incorrect email and/or password!');
+			}			
+		});
+	} else {
+		res.send('Please enter your email and password!');
+	}
+});
+app.get('/auth/register', function (req, res){
+	res.render("auth/register.ejs");
+});
+
+app.post('/auth/register', function(req, res) {
+	const { email, password } = req.body;
+    const userrole = 'user';
+
+		const sql = 'INSERT INTO users (email, password, userrole) VALUES (?, ?, ?)';
+		conn.query(sql, [email, password, userrole], (err, result) => {
+			if (err) {
+				return res.status(500).send('Error saving user: ' + err);
+			}
+			console.log('User registered')
+            res.send('User registered successfully!');
+		});
+	});
+	
+
 //EMOTIONS PAGE  
 app.get('/emotions', function (req, res) {
     const sql = `
@@ -30,7 +78,7 @@ app.get('/emotions', function (req, res) {
             return res.status(500).send('Database error');
         }
 
-        // Group emotions by emo_id for easier access in the template
+        
         const emoIdData = {};
         result.forEach(row => {
             if (!emoIdData[row.emo_id]) {
@@ -39,7 +87,7 @@ app.get('/emotions', function (req, res) {
             emoIdData[row.emo_id].push(row);
         });
 
-        // Render the emotions page and pass the data to the template
+        
         res.render('emotions', { emoIdData });
     });
 });
@@ -58,10 +106,10 @@ app.get('/skills', function (req, res) {
 
 //SKILLS FOR ALL EMO GROUPS
 app.get('/skills/:emo_id', function (req, res) {
-    const emoId = req.params.emo_id; // Get the emo_id from the URL parameters
-    const emotionName = req.query.emotion_name; // Get the emotion name from the query parameters
+    const emoId = req.params.emo_id; 
+    const emotionName = req.query.emotion_name; 
 
-    // Step 1: Fetch the emotions that belong to this emo_id category
+    
     const sqlEmotion = `
     SELECT emotion 
     FROM emotions 
@@ -77,15 +125,15 @@ app.get('/skills/:emo_id', function (req, res) {
             return res.status(404).send('No emotions found for this category');
         }
 
-        // Use the first emotion for the title if you still want it from the database
+    
         const emotionTitle = emotionResult[0].emotion; 
 
-        // Step 2: Fetch skills associated with the given emo_id
+        
         const sqlSkills = `
         SELECT skills.skill_name, skills.skill_info 
         FROM emotions_skills 
         JOIN skills ON emotions_skills.skill_id = skills.skill_id 
-        WHERE emotions_skills.emo_id = ?`; // This filters by emo_id
+        WHERE emotions_skills.emo_id = ?`; 
 
         conn.query(sqlSkills, [emoId], function (err, skillsResult) {
             if (err) {
@@ -93,13 +141,16 @@ app.get('/skills/:emo_id', function (req, res) {
                 return res.status(500).send('Database error');
             }
 
-            // Render the page with the emotion name in the title and skills in the content
             res.render('skills', { 
-                title: 'Skills to manage feeling ' + (emotionName || emotionTitle), // Use the emotion name from query or database
-                skills: skillsResult // Pass the filtered skills to the view 
+                title: 'Skills to manage feeling ' + (emotionName || emotionTitle), 
+                skills: skillsResult 
             });
         });
     });
+});
+app.get('/logout',(req,res) => {
+    req.session.destroy();
+    res.redirect('/');
 });
 app.listen(3000);
 console.log('Node app is running on port 3000');
