@@ -36,7 +36,7 @@ app.post('/auth/login', function(req, res) {
 				console.log(results.length);
 				console.log("User email :",results[0].email);
 				console.log("User role :",results[0].userrole)			
-				res.redirect('/user/myProfile');
+				res.redirect('/dashboard');
 			} else {
 				res.send('Incorrect email and/or password!');
 			}			
@@ -94,7 +94,6 @@ app.get('/emotions', function (req, res) {
 //SKILLS PAGE
 app.get('/skills', function (req, res) {
     const sql = 'SELECT * FROM skills';
-
     conn.query(sql, function (err, result) {
         if (err) {
             console.error('Database error:', err);
@@ -108,45 +107,122 @@ app.get('/skills', function (req, res) {
 app.get('/skills/:emo_id', function (req, res) {
     const emoId = req.params.emo_id; 
     const emotionName = req.query.emotion_name; 
-
-    
     const sqlEmotion = `
     SELECT emotion 
     FROM emotions 
     WHERE emo_id = ?`;
-
     conn.query(sqlEmotion, [emoId], function (err, emotionResult) {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).send('Database error');
         }
-
         if (emotionResult.length === 0) {
             return res.status(404).send('No emotions found for this category');
         }
-
-    
         const emotionTitle = emotionResult[0].emotion; 
-
-        
         const sqlSkills = `
         SELECT skills.skill_name, skills.skill_info 
         FROM emotions_skills 
         JOIN skills ON emotions_skills.skill_id = skills.skill_id 
         WHERE emotions_skills.emo_id = ?`; 
-
         conn.query(sqlSkills, [emoId], function (err, skillsResult) {
             if (err) {
                 console.error('Database error:', err);
                 return res.status(500).send('Database error');
             }
-
             res.render('skills', { 
                 title: 'Skills to manage feeling ' + (emotionName || emotionTitle), 
                 skills: skillsResult 
             });
         });
     });
+});
+
+// LOGGED IN PAGES
+app.get('/dashboard', function (req, res, next) {
+	if (req.session.loggedin){
+		if(req.session.userrole === "user"){
+			res.render('user/myRecord');  
+		}
+		else if(req.session.userrole === "admin"){
+			res.render('admin/moderator');
+		}
+		else{
+			res.send('Page not found for this user.');
+		}
+	}
+	else {		
+		res.send('Please login to view this page!');
+	}
+});
+app.get('/user/myRecord', function (req, res, next) {
+	if (req.session.loggedin){
+		if(req.session.userrole === "user"){
+			res.render('user/myRecord');
+		}
+		else if(req.session.userrole === "admin"){
+			res.render('admin/moderator');
+		}
+		else{
+			res.send('Page not found for this user ');
+
+		}
+	}
+	else {		
+		res.send('Please login to view this page!');
+	}
+});
+app.get('/user/myProfile', function (req, res, next) {
+	if (req.session.loggedin){
+		if(req.session.userrole === "user"){
+			res.render('user/myProfile');
+		}
+		else{
+			res.send('Page not found for this user ');
+		}
+	}
+	else {		
+		res.send('Please login to view this page!');
+	}
+});
+app.get('/user/emotions', function (req, res, next) {
+	if (req.session.loggedin){
+		if(req.session.userrole === "user"){
+			res.render('user/emotions');
+		}
+		else{
+			res.send('Page not found for this user ');
+		}
+	}
+	else {		
+		res.send('Please login to view this page!');
+	}
+});
+app.get('/user/skills', function (req, res, next) {
+	if (req.session.loggedin){
+		if(req.session.userrole === "user"){
+			res.render('user/skills');
+		}
+		else{
+			res.send('Page not found for this user ');
+		}
+	}
+	else {		
+		res.send('Please login to view this page!');
+	}
+});
+app.get('/user/submitSkill', function (req, res, next) {
+	if (req.session.loggedin){
+		if(req.session.userrole === "user"){
+			res.render('user/submitSkill');
+		}
+		else{
+			res.send('Page not found for this user ');
+		}
+	}
+	else {		
+		res.send('Please login to view this page!');
+	}
 });
 app.get('/logout',(req,res) => {
     req.session.destroy();
