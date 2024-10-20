@@ -40,9 +40,10 @@
                                                       <tr>
                                                           <td><%= emotion.emotion %></td>
                                                           <td>
-                                                              <a href="/skills/<%= emotion.emo_id %>?emo_id=<%= emotion.emo_id %>&emotion_name=<%= emotion.emotion %>" class="btn btn-primary">
-                                                                  View Skills
-                                                              </a>
+                                                            <a href="/user/skills/<%= emotion.emo_id %>?emo_id=<%= emotion.emo_id %>&emotion_name=<%= emotion.emotion %>" 
+                                                                class="btn btn-primary">
+                                                                View Skills
+                                                             </a>
                                                           </td>
                                                       </tr>
                                                   <% }); %>
