@@ -33,9 +33,11 @@ app.post('/auth/login', function(req, res) {
 				req.session.loggedin = true;			
 				req.session.email = email;
 				req.session.userrole = results[0].userrole;
+                req.session.userId = results[0].user_id;
 				console.log(results.length);
 				console.log("User email :",results[0].email);
-				console.log("User role :",results[0].userrole)			
+				console.log("User role :",results[0].userrole);
+                console.log("User ID:", results[0].user_id);			
 				res.redirect('/dashboard');
 			} else {
 				res.send('Incorrect email and/or password!');
@@ -212,6 +214,7 @@ app.get('/user/emotions', function (req, res, next) {
     }
 });
 app.get('/user/skills/:emo_id', function (req, res) {
+    req.session.previousUrl = req.originalUrl;
     const emoId = req.params.emo_id; 
     const emotionName = req.query.emotion_name; 
     const sqlEmotion = `
@@ -263,6 +266,31 @@ app.get('/user/skills', function (req, res, next) {
         res.send('Please login to view this page!');
     }
 });
+//ADD EMO+SKILL to MY RECORD
+app.post('/user/records', function (req, res) {
+    if (req.session.loggedin) {
+        const userId = req.session.userId; 
+        const emotion = req.body.emotion; 
+        const skillName = req.body.skill_name;
+        const skillInfo = req.body.skill_info;
+        const dateTime = new Date(); 
+
+        const sqlInsert = `
+            INSERT INTO records (user_id, emotion, skill_name, skill_info, date_time) 
+            VALUES (?, ?, ?, ?, ?)`;
+        
+        conn.query(sqlInsert, [userId, emotion, skillName, skillInfo, dateTime], function (err, result) {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).send('Database error');
+            }
+            res.redirect(req.session.previousUrl || '/user/emotions'); 
+        });
+    } else {
+        res.send('Please login to record skills!');
+    }
+});
+
 app.get('/user/submitSkill', function (req, res, next) {
 	if (req.session.loggedin){
 		if(req.session.userrole === "user"){
