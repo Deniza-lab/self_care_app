@@ -31,12 +31,20 @@
                             </tr>
                           </thead>
                           <tbody>
-                            <tr>
-                              <th scope="row"></th>
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                            </tr>
+                            <% if (records.length > 0) { %>
+                              <% records.forEach(function(record) { %>
+                                <tr>
+                                  <th scope="row"><%= record.date_time %></th>
+                                  <td><%= record.emotion %></td>
+                                  <td><%= record.skill_name %></td>
+                                  <td><%= record.skill_info %></td>
+                                </tr>
+                              <% }); %>
+                            <% } else { %>
+                              <tr>
+                                <td colspan="4">No records added yet</td>
+                              </tr>
+                            <% } %>
                           </tbody>
                       </table>
                     </div></div></div>

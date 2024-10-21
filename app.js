@@ -34,10 +34,7 @@ app.post('/auth/login', function(req, res) {
 				req.session.email = email;
 				req.session.userrole = results[0].userrole;
                 req.session.userId = results[0].user_id;
-				console.log(results.length);
-				console.log("User email :",results[0].email);
-				console.log("User role :",results[0].userrole);
-                console.log("User ID:", results[0].user_id);			
+				console.log("Session data after login:", req.session);			
 				res.redirect('/dashboard');
 			} else {
 				res.send('Incorrect email and/or password!');
@@ -144,13 +141,20 @@ app.get('/skills/:emo_id', function (req, res) {
 app.get('/dashboard', function (req, res, next) {
 	if (req.session.loggedin){
 		if(req.session.userrole === "user"){
-			res.render('user/myRecord');  
-		}
-		else if(req.session.userrole === "admin"){
-			res.render('admin/moderator');
-		}
+            const userId = req.session.userId;
+            console.log("User ID:", userId);
+            const query = "SELECT date_time, emotion, skill_name, skill_info FROM records WHERE user_id = ?";
+            conn.query(query, [userId], function (error, results) {
+                if (error) {
+                    console.error("Database error:", error);
+                    return next(error);
+                }
+                
+                res.render('user/myRecord', { records: results });
+            });
+        }
 		else{
-			res.send('Page not found for this user.');
+			res.send('Page not found for this user ');
 		}
 	}
 	else {		
@@ -160,8 +164,18 @@ app.get('/dashboard', function (req, res, next) {
 app.get('/user/myRecord', function (req, res, next) {
 	if (req.session.loggedin){
 		if(req.session.userrole === "user"){
-			res.render('user/myRecord');
-		}
+            const userId = req.session.user_id;
+            console.log("User ID:", userId);
+            const query = "SELECT date_time, emotion, skill_name, skill_info FROM records WHERE user_id = ?";
+            conn.query(query, [userId], function (error, results) {
+                if (error) {
+                    console.error("Database error:", error);
+                    return next(error);
+                }
+                console.log("Results:", results);
+                res.render('user/myRecord', { records: results });
+            });
+        }
 		else{
 			res.send('Page not found for this user ');
 		}
