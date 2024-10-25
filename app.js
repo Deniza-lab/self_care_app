@@ -164,15 +164,14 @@ app.get('/dashboard', function (req, res, next) {
 app.get('/user/myRecord', function (req, res, next) {
 	if (req.session.loggedin){
 		if(req.session.userrole === "user"){
-            const userId = req.session.user_id;
+            const userId = req.session.userId;
             console.log("User ID:", userId);
             const query = "SELECT date_time, emotion, skill_name, skill_info FROM records WHERE user_id = ?";
             conn.query(query, [userId], function (error, results) {
                 if (error) {
                     console.error("Database error:", error);
                     return next(error);
-                }
-                console.log("Results:", results);
+                }       
                 res.render('user/myRecord', { records: results });
             });
         }
@@ -304,20 +303,50 @@ app.post('/user/records', function (req, res) {
         res.send('Please login to record skills!');
     }
 });
-
+//SUBMIT EMO/SKILL
 app.get('/user/submitSkill', function (req, res, next) {
+    if (req.session.loggedin && req.session.userrole === "user") {
+        const sqlQuery = "SELECT emo_id, emo_categ FROM emotions_categories";
+        
+        conn.query(sqlQuery, function (err, categories) {
+            if (err) {
+                console.log('DB error', err);
+                return res.status(500).send('Database error');
+            }
+            res.render('user/submitSkill', { categories });
+        });
+    } else {
+        res.send('Please login to view this page!');
+    }
+});
+            
+app.post('/user/submitSkill', function (req, res, next) {
 	if (req.session.loggedin){
 		if(req.session.userrole === "user"){
-			res.render('user/submitSkill');
+            const userId = req.session.userId; 
+            const emo = req.body.emoSubmit;
+            const categ = req.body.emoCatSubmit;
+            const skillName = req.body.skillName;
+            const skillInfo = req.body.skillInfo;
+            const dateTime = new Date();
+
+            const sqlInsert = `
+            INSERT INTO submissions (user_id, emotion, emo_categ, skill_name, skill_info, date_time)
+            VALUES (?, ?, ?, ?, ?, ?)`;
+
+            conn.query(sqlInsert, [userId, emo, categ, skillName, skillInfo, dateTime], function (err, result) {
+                if (err) {
+                    console.log('DB error', err);
+                    return res.status(500).send('DB error');
+                }
+                res.redirect(req.session.previousUrl || '/user/submitSkill');
+            });
+		} else {
+			res.send('Please login to make submissions!');
 		}
-		else{
-			res.send('Page not found for this user ');
-		}
-	}
-	else {		
-		res.send('Please login to view this page!');
 	}
 });
+
 app.get('/logout',(req,res) => {
     req.session.destroy();
     res.redirect('/');
