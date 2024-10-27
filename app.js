@@ -307,13 +307,13 @@ app.post('/user/records', function (req, res) {
 app.get('/user/submitSkill', function (req, res, next) {
     if (req.session.loggedin && req.session.userrole === "user") {
         const sqlQuery = "SELECT emo_id, emo_categ FROM emotions_categories";
-        
+        const success = req.query.success === 'true';
         conn.query(sqlQuery, function (err, categories) {
             if (err) {
                 console.log('DB error', err);
                 return res.status(500).send('Database error');
             }
-            res.render('user/submitSkill', { categories });
+            res.render('user/submitSkill', { categories, success });
         });
     } else {
         res.send('Please login to view this page!');
@@ -339,7 +339,9 @@ app.post('/user/submitSkill', function (req, res, next) {
                     console.log('DB error', err);
                     return res.status(500).send('DB error');
                 }
-                res.redirect(req.session.previousUrl || '/user/submitSkill');
+                console.log('New submission!')
+                res.redirect('/user/submitSkill?success=true');
+                
             });
 		} else {
 			res.send('Please login to make submissions!');
