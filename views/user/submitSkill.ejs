@@ -38,7 +38,7 @@
                         </div>
                         <div class="mb-3" id="newCategoryField" style="display: none;">
                             <label for="emoCatSubmit" class="form-label">Enter New Category</label>
-                            <input type="text" class="form-control" id="newCategory" name="emoCatSubmit" placeholder="Enter new category">
+                            <input type="text" class="form-control" id="newCategory" name="newCategory" placeholder="Enter new category" >
                         </div>
                         <div class="mt-3">
                             <label for="skillName" class="form-label">New skill name</label>
@@ -82,8 +82,21 @@
             toast.show();
         <% } %>
     });
-</script>
-<script>
+
+
+    document.querySelector('form').addEventListener('submit', function(event) {
+        const categorySelect = document.getElementById('emoCatSubmitSelect');
+        const newCategoryInput = document.getElementById('newCategory');
+        
+        if (categorySelect.value === 'New category' && newCategoryInput.value) {
+            categorySelect.name = "";  
+            newCategoryInput.name = "emoCatSubmit";  
+        } else {
+            newCategoryInput.name = ""; 
+        }
+    }); 
+
+
     function toggleNewCategoryField() {
         const categorySelect = document.getElementById('emoCatSubmitSelect');
         const newCategoryField = document.getElementById('newCategoryField');
