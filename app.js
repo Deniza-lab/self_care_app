@@ -140,9 +140,13 @@ app.get('/skills/:emo_id', function (req, res) {
 // LOGGED IN PAGES
 app.get('/dashboard', function (req, res, next) {
 	if (req.session.loggedin){
-		if(req.session.userrole === "user"){
-            const userId = req.session.userId;
+        const userRole = req.session.userrole;
+		const userId = req.session.userId;
+        console.log("Userrole:", userRole);
+
+		if(userRole === "user"){
             console.log("User ID:", userId);
+            
             const query = "SELECT date_time, emotion, skill_name, skill_info FROM records WHERE user_id = ?";
             conn.query(query, [userId], function (error, results) {
                 if (error) {
@@ -153,14 +157,16 @@ app.get('/dashboard', function (req, res, next) {
                 res.render('user/myRecord', { records: results });
             });
         }
-		else{
+        else if (userRole === "admin") {
+			res.redirect('/admin/moderator');
+        } else {
 			res.send('Page not found for this user ');
 		}
-	}
-	else {		
+	} else {		
 		res.send('Please login to view this page!');
 	}
 });
+
 app.get('/user/myRecord', function (req, res, next) {
 	if (req.session.loggedin){
 		if(req.session.userrole === "user"){
@@ -183,6 +189,7 @@ app.get('/user/myRecord', function (req, res, next) {
 		res.send('Please login to view this page!');
 	}
 });
+
 app.get('/user/myProfile', function (req, res, next) {
 	if (req.session.loggedin){
 		if(req.session.userrole === "user"){
@@ -319,7 +326,7 @@ app.get('/user/submitSkill', function (req, res, next) {
         res.send('Please login to view this page!');
     }
 });
-            
+//SUBMIT SKILL FORM SUBMISSION            
 app.post('/user/submitSkill', function (req, res, next) {
 	if (req.session.loggedin){
 		if(req.session.userrole === "user"){
@@ -347,6 +354,30 @@ app.post('/user/submitSkill', function (req, res, next) {
 			res.send('Please login to make submissions!');
 		}
 	}
+});
+
+//MODERATOR PAGE
+app.get('/admin/moderator', function (req, res, next) {
+    if (req.session.loggedin) {
+        if (req.session.userrole === "admin") {
+            const sql = `
+                SELECT * 
+                FROM submissions 
+            `;
+            conn.query(sql, function (err, result) {
+                if (err) {
+                    console.error('Database error:', err);
+                    return res.status(500).send('Database error');
+                }
+
+                res.render('admin/moderator', { submissions: result });
+            });
+        } else if (req.session.userrole === "user") {
+            res.send('Access denied.');
+        }
+    } else {        
+        res.send('Please login to view this page!');
+    }
 });
 
 app.get('/logout',(req,res) => {
