@@ -21,39 +21,150 @@
                 <div class="col">
                     <%- include('../partials/headerMod.ejs') %>
                     <table class="table table-bordered border-warning">
-                        <thead>
-                            <tr>
-                              <th scope="col">Submission ID</th>
-                              <th scope="col">User Id</th>
-                              <th scope="col">Emotion</th>
-                              <th scope="col">Category</th>
-                              <th scope="col">Skill name</th>
-                              <th scope="col">Skill description</th>
-                              <th scope="col">Date and time of submission</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <% if (submissions.length > 0) { %>
-                              <% submissions.forEach(function(submission) { %>
-                                <tr>
+                      <thead>
+                        <tr>
+                          <th scope="col">Submission ID</th>
+                          <th scope="col">User Id</th>
+                          <th scope="col">Emotion</th>
+                          <th scope="col">Category</th>
+                          <th scope="col">Category code</th>
+                          <th scope="col">Skill name</th>
+                          <th scope="col">Skill description</th>
+                          <th scope="col">Date and time of submission</th>
+                          <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                      <% if (submissions.length > 0) { %>
+                          <% submissions.forEach(function(submission) { %>
+                              <tr>
                                   <th scope="row"><%= submission.id %></th>
                                   <td><%= submission.user_id %></td>
                                   <td><%= submission.emotion %></td>
                                   <td><%= submission.emo_categ %></td>
+                                  <td>
+                                    <select class="form-select" id="emoSelect-<%= submission.id %>">
+                                      <% categories.forEach(function(category) { %>
+                                        <option value="<%= category.emo_categ %>" 
+                                          <%= submission.emo_categ === category.emo_categ ? 'selected' : '' %>>
+                                        <%= category.emo_id %>
+                                      </option>
+                                      <% }); %>
+                                    </select>
+                                  </td>
                                   <td><%= submission.skill_name %></td>
                                   <td><%= submission.skill_info %></td>
                                   <td><%= submission.date_time %></td>
-                                </tr>
-                              <% }); %>
-                            <% } else { %>
-                              <tr>
-                                <td colspan="4">No submissions found</td>
+                                  <td>
+                                      <button class="btn btn-primary btn-sm" onclick="editEntry(<%= submission.id %>)">Edit</button>
+                                      <button class="btn btn-danger btn-sm" onclick="deleteEntry(<%= submission.id %>)">Delete</button>
+                                      <button class="btn btn-success btn-sm" onclick="submitEntry(<%= submission.id %>)">Submit</button>
+                                  </td>
                               </tr>
-                            <% } %>
-                          </tbody>
+                          <% }); %>
+                      <% } else { %>
+                          <tr>
+                              <td colspan="8">No submissions found</td>
+                          </tr>
+                      <% } %>
+                  </tbody>
                       </table>
+                      <!-- Edit Submission Modal -->
+                      <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editModalLabel">Edit Submission</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="editForm">
+                                        <input type="hidden" id="editId" name="id">
+                                        <div class="mb-3">
+                                            <label for="editEmotion" class="form-label">Emotion</label>
+                                            <input type="text" class="form-control" id="editEmotion" name="emotion">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="editCategory" class="form-label">Category</label>
+                                            <input type="text" class="form-control" id="editCategory" name="category">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="editSkillName" class="form-label">Skill Name</label>
+                                            <input type="text" class="form-control" id="editSkillName" name="skill_name">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="editSkillDescription" class="form-label">Skill Description</label>
+                                            <textarea class="form-control" id="editSkillDescription" name="skill_description"></textarea>
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="saveChanges()">Save Changes</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     </div></div></div>
+
+                    
+                    <script>
+                      function editEntry(id) {
+
+    const submissions = <%= JSON.stringify(submissions) %>;;
     
+    document.getElementById('editId').value = submission.id;
+    document.getElementById('editEmotion').value = submission.emotion;
+    document.getElementById('editCategory').value = submission.emo_categ;
+    document.getElementById('editSkillName').value = submission.skill_name;
+    document.getElementById('editSkillDescription').value = submission.skill_info;
+
+    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    editModal.show();
+}
+
+function saveChanges() {
+    const id = document.getElementById('editId').value;
+    const emotion = document.getElementById('editEmotion').value;
+    const category = document.getElementById('editCategory').value;
+    const skillName = document.getElementById('editSkillName').value;
+    const skillDescription = document.getElementById('editSkillDescription').value;
+
+    fetch(`/admin/edit/${id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ emotion, category, skill_name: skillName, skill_description: skillDescription })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Submission updated successfully');
+            location.reload();
+        } else {
+            alert('Failed to update submission');
+        }
+    });
+}
+                      
+                      function deleteEntry(id) {
+                          if (confirm("Are you sure you want to delete this entry?")) {
+                              fetch(`/admin/delete/${id}`, { method: 'DELETE' })
+                                  .then(response => response.json())
+                                  .then(data => {
+                                      if (data.success) location.reload();
+                                      else alert('Failed to delete entry');
+                                  });
+                          }
+                      }
+                      
+                      function submitEntry(id) {
+                          fetch(`/admin/submit/${id}`, { method: 'POST' })
+                              .then(response => response.json())
+                              .then(data => {
+                                  if (data.success) alert('Entry submitted successfully');
+                                  else alert('Submission failed');
+                              });
+                      }
+                      </script>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>

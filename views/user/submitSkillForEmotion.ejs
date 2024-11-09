@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Submit Skill for Emotion</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-info-subtle">
+<div class="container mt-5">
+    <h1 class="display-6">Submit a Skill for an Existing Emotion</h1>
+    <form method="POST" action="/user/submitSkillForEmotion">
+        <input type="hidden" name="sub_type" value="New Skill for Existing Emotion">
+        
+        <!-- Emotion Category Dropdown -->
+        <div class="mb-3">
+            <label for="emo_categ" class="form-label">Emotion Category</label>
+            <select class="form-select" id="emo_categ" name="emo_categ" required onchange="fetchEmotionsByCategory()">
+                <option value="">Select a Category</option>
+                <% categories.forEach(category => { %>
+                    <option value="<%= category.emo_categ %>"><%= category.emo_categ %></option>
+                <% }) %>
+            </select>
+        </div>
+
+        <!-- Emotions Dropdown (Populated Dynamically) -->
+        <div class="mb-3">
+            <label for="emotion" class="form-label">Emotion</label>
+            <select class="form-select" id="emotionDropdown" name="emotion" required>
+                <option value="">Select an Emotion</option>
+                <!-- Options will be populated by JavaScript -->
+            </select>
+        </div>
+
+        <!-- Skill Name and Description -->
+        <div class="mb-3">
+            <label for="skillName" class="form-label">Skill Name</label>
+            <input type="text" class="form-control" id="skillName" name="skill_name" required>
+        </div>
+        <div class="mb-3">
+            <label for="skillInfo" class="form-label">Skill Description</label>
+            <textarea class="form-control" id="skillInfo" name="skill_info" rows="4" required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Skill</button>
+    </form>
+</div>
+<script>
+    function fetchEmotionsByCategory() {
+        const selectedCategory = document.getElementById('emo_categ').value;
+        const emotionDropdown = document.getElementById('emotionDropdown');
+        emotionDropdown.innerHTML = '<option value="">Select an Emotion</option>';
+
+        if (selectedCategory) {
+            fetch(`/user/getEmotionsByCategory?category=${encodeURIComponent(selectedCategory)}`)
+                .then(response => response.json())
+                .then(emotions => {
+                    emotions.forEach(emotion => {
+                        const option = document.createElement('option');
+                        option.value = emotion.emotion;
+                        option.textContent = emotion.emotion;
+                        emotionDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching emotions:', error));
+        }
+    }
+</script>
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toast-success" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Submission successful!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Show toast if redirected with a success flag
+    window.addEventListener('load', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            const toastElement = document.getElementById('toast-success');
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        }
+    });
+</script>
+
+</body>
+</html>
+

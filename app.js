@@ -311,71 +311,192 @@ app.post('/user/records', function (req, res) {
     }
 });
 //SUBMIT EMO/SKILL
-app.get('/user/submitSkill', function (req, res, next) {
+app.get('/user/submitSkill', (req, res) => {
+    if (req.session.loggedin && req.session.userrole === "user") {
+        res.render('user/submitSkill');
+    } else {
+        res.send('Please login to access this page!');
+    }
+});
+// New Emotion Page
+app.get('/user/submitEmotion', (req, res) => {
     if (req.session.loggedin && req.session.userrole === "user") {
         const sqlQuery = "SELECT emo_id, emo_categ FROM emotions_categories";
         const success = req.query.success === 'true';
-        conn.query(sqlQuery, function (err, categories) {
+        conn.query(sqlQuery, (err, categories) => {
             if (err) {
                 console.log('DB error', err);
                 return res.status(500).send('Database error');
             }
-            res.render('user/submitSkill', { categories, success });
+            res.render('user/submitEmotion', { categories, success });
         });
     } else {
         res.send('Please login to view this page!');
     }
 });
-//SUBMIT SKILL FORM SUBMISSION            
-app.post('/user/submitSkill', function (req, res, next) {
-	if (req.session.loggedin){
-		if(req.session.userrole === "user"){
-            const userId = req.session.userId; 
-            const emo = req.body.emoSubmit;
-            const categ = req.body.emoCatSubmit;
-            const skillName = req.body.skillName;
-            const skillInfo = req.body.skillInfo;
-            const dateTime = new Date();
+app.post('/user/submitEmotion', function (req, res, next) {
+    if (req.session.loggedin && req.session.userrole === "user") {
+        const userId = req.session.userId;
+        const emo = req.body.emoSubmit;
+        const categ = req.body.emoCatSubmit;
+        const subType = req.query.subType || 'New Emotion';
+        const dateTime = new Date();
 
-            const sqlInsert = `
-            INSERT INTO submissions (user_id, emotion, emo_categ, skill_name, skill_info, date_time)
-            VALUES (?, ?, ?, ?, ?, ?)`;
+        const sqlInsert = `
+        INSERT INTO submissions (user_id, emotion, emo_categ, sub_type, date_time)
+        VALUES (?, ?, ?, ?, ?)`;
 
-            conn.query(sqlInsert, [userId, emo, categ, skillName, skillInfo, dateTime], function (err, result) {
+        conn.query(sqlInsert, [userId, emo, categ, subType, dateTime], function (err, result) {
+            if (err) {
+                console.log('DB error', err);
+                return res.status(500).send('DB error');
+            }
+            console.log('New emotion submission!');
+            res.redirect('/user/submitEmotion?success=true');
+        });
+    } else {
+        res.send('Please login to submit an emotion!');
+    }
+});
+
+// New Skill for Existing Emotion Page
+// Route to get emotions for a specific category
+app.get('/user/getEmotionsByCategory', (req, res) => {
+    const selectedCategory = req.query.category; 
+    console.log("Received emo_categ:", selectedCategory);
+    
+    const sqlQuery = `
+        SELECT e.emotion
+        FROM emotions AS e
+        JOIN emotions_categories AS ec ON e.emo_id = ec.emo_id
+        WHERE ec.emo_categ = ?`;
+    
+        conn.query(sqlQuery, [selectedCategory], function (err, results) {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).send('Error fetching emotions');
+            }
+            res.json(results); // Return results as JSON
+        });
+    });
+app.get('/user/submitSkillForEmotion', (req, res) => {
+    if (req.session.loggedin && req.session.userrole === "user") {
+        const success = req.query.success === 'true';
+        const query = `SELECT emo_categ FROM emotions_categories`;
+
+        conn.query(query, (err, categories) => {
+            if (err) {
+                console.log('DB error:', err);
+                return res.status(500).send('Database error');
+            }
+            res.render('user/submitSkillForEmotion', { categories, success });
+        });
+    } else {
+        res.send('Please login to view this page!');
+    }
+});
+
+
+app.post('/user/submitSkillForEmotion', function (req, res) {
+    if (req.session.loggedin && req.session.userrole === "user") {
+        const userId = req.session.userId;
+        const subType = "New Skill for Existing Emotion"; 
+        const dateTime = new Date();
+        
+        const { emo_categ, emotion, skill_name, skill_info } = req.body;
+
+        const sqlInsert = `
+            INSERT INTO submissions (user_id, emotion, emo_categ, skill_name, skill_info, date_time, sub_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+        conn.query(sqlInsert, [userId, emotion, emo_categ, skill_name, skill_info, dateTime, subType], function (err, result) {
+            if (err) {
+                console.log('DB error:', err);
+                return res.status(500).send('DB error');
+            }
+            res.redirect('/user/submitSkillForEmotion?success=true');
+        });
+    } else {
+        res.send('Please login to make submissions!');
+    }
+});
+
+// New Emotion and Skill Page
+app.get('/user/submitEmotionAndSkill', (req, res) => {
+    if (req.session.loggedin && req.session.userrole === "user") {
+        const success = req.query.success === 'true';
+        const query = `SELECT emo_categ FROM emotions_categories`;
+
+        conn.query(query, (err, categories) => {
+            if (err) {
+                console.log('DB error:', err);
+                return res.status(500).send('Database error');
+            }
+            res.render('user/submitEmotionAndSkill', { categories, success });
+        });
+    } else {
+        res.send('Please login to view this page!');
+    }
+});
+
+// POST route to handle form submission
+app.post('/user/submitEmotionAndSkill', (req, res) => {
+    if (req.session.loggedin && req.session.userrole === "user") {
+        const userId = req.session.userId;
+        const subType = "New Emotion and Skill"; // Indicating the type of submission
+        const dateTime = new Date();
+
+        const { emo_categ, emotion, skill_name, skill_info } = req.body;
+
+        // Insert into the submissions table
+        const sqlInsert = `
+            INSERT INTO submissions (user_id, emotion, emo_categ, skill_name, skill_info, date_time, sub_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+        conn.query(
+            sqlInsert,
+            [userId, emotion, emo_categ, skill_name, skill_info, dateTime, subType],
+            (err, result) => {
                 if (err) {
-                    console.log('DB error', err);
+                    console.log('DB error:', err);
                     return res.status(500).send('DB error');
                 }
-                console.log('New submission!')
-                res.redirect('/user/submitSkill?success=true');
-                
-            });
-		} else {
-			res.send('Please login to make submissions!');
-		}
-	}
+                res.redirect('/user/submitEmotionAndSkill?success=true');
+            }
+        );
+    } else {
+        res.send('Please login to make submissions!');
+    }
 });
+
 
 //MODERATOR PAGE
 app.get('/admin/moderator', function (req, res, next) {
     if (req.session.loggedin) {
         if (req.session.userrole === "admin") {
-            const sql = `
-                SELECT * 
-                FROM submissions 
-            `;
+            const sql = `SELECT * FROM submissions`;
+            const categoryQuery = `SELECT emo_id, emo_categ FROM emotions_categories`;
+            
             conn.query(sql, function (err, result) {
                 if (err) {
                     console.error('Database error:', err);
                     return res.status(500).send('Database error');
                 }
 
-                res.render('admin/moderator', { submissions: result });
+                conn.query(categoryQuery, function (err, categories) {
+                    if (err) {
+                        console.error('Database error:', err);
+                        return res.status(500).send('Database error');
+                    }
+
+                    // Send both submissions and categories data to the view
+                    res.render('admin/moderator', { submissions: result, categories: categories });
+                });
             });
         } else if (req.session.userrole === "user") {
             res.send('Access denied.');
         }
-    } else {        
+    } else {
         res.send('Please login to view this page!');
     }
 });
