@@ -7,6 +7,7 @@
 </head>
 <body class="bg-info-subtle">
 <div class="container mt-5">
+    <%- include('../partials/headerLoggedIn.ejs') %>
     <h1 class="display-6">Submit a Skill for an Existing Emotion</h1>
     <form method="POST" action="/user/submitSkillForEmotion">
         <input type="hidden" name="sub_type" value="New Skill for Existing Emotion">

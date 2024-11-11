@@ -472,34 +472,54 @@ app.post('/user/submitEmotionAndSkill', (req, res) => {
 
 //MODERATOR PAGE
 app.get('/admin/moderator', function (req, res, next) {
-    if (req.session.loggedin) {
-        if (req.session.userrole === "admin") {
-            const sql = `SELECT * FROM submissions`;
-            const categoryQuery = `SELECT emo_id, emo_categ FROM emotions_categories`;
-            
-            conn.query(sql, function (err, result) {
+    if (req.session.loggedin && req.session.userrole === "admin") {
+        console.log("Query parameters:", req.query);
+        const filter = req.query.type; 
+        console.log("Filter:", filter);
+        const sql = filter
+            ? `SELECT * FROM submissions WHERE sub_type = ?`
+            : `SELECT * FROM submissions`;
+        const params = filter ? [filter] : [];
+
+        const categoryQuery = `SELECT emo_id, emo_categ FROM emotions_categories`;
+
+        conn.query(sql, params, function (err, result) {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).send('Database error');
+            }
+
+            conn.query(categoryQuery, function (err, categories) {
                 if (err) {
                     console.error('Database error:', err);
                     return res.status(500).send('Database error');
                 }
 
-                conn.query(categoryQuery, function (err, categories) {
-                    if (err) {
-                        console.error('Database error:', err);
-                        return res.status(500).send('Database error');
-                    }
-
-                    // Send both submissions and categories data to the view
-                    res.render('admin/moderator', { submissions: result, categories: categories });
-                });
+                res.render('admin/moderator', { submissions: result, categories: categories, filter });
             });
-        } else if (req.session.userrole === "user") {
-            res.send('Access denied.');
-        }
+        });
+    } else if (req.session.loggedin && req.session.userrole === "user") {
+        res.send('Access denied.');
     } else {
         res.send('Please login to view this page!');
     }
 });
+// DELETE FUNCTION
+app.delete('/admin/moderator/delete/:id', (req, res) => {
+    const submissionId = req.params.id; 
+    console.log('Received request to delete submission with ID:', submissionId);
+    const query = 'DELETE FROM submissions WHERE id = ?';
+    db.query(query, [submissionId], (err, result) => {
+        if (err) {
+            console.error('Error deleting submission:', err);
+            return res.status(500).send('Failed to delete submission');
+        }
+
+        console.log('Deleted submission with ID:', submissionId);
+        res.send('Submission deleted successfully');
+    });
+});
+
 
 app.get('/logout',(req,res) => {
     req.session.destroy();
