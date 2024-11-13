@@ -22,7 +22,7 @@
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="filterType" class="form-label">Filter by Submission Type:</label>
-                            <select id="filterType" class="form-select" onchange="window.location.href = this.value ? `/admin/moderator?type=${this.value}` : '/admin/moderator';">
+                            <select id="filterType" class="form-select" onchange=filterByType()>
                                 <option value=""<%= !filter ? 'selected' : '' %>>All Types</option>
                                 <option value="New Emotion" <%= filter === 'New Emotion' ? 'selected' : '' %>>New Emotion</option>
                                 <option value="New Skill for Existing Emotion" <%= filter === 'New Skill for Existing Emotion' ? 'selected' : '' %>>New Skill for Existing Emotion</option>
