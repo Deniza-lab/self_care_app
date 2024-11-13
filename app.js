@@ -509,12 +509,13 @@ app.delete('/admin/moderator/delete/:id', (req, res) => {
     const submissionId = req.params.id; 
     console.log('Received request to delete submission with ID:', submissionId);
     const query = 'DELETE FROM submissions WHERE id = ?';
-    db.query(query, [submissionId], (err, result) => {
-        if (err) {
-            console.error('Error deleting submission:', err);
-            return res.status(500).send('Failed to delete submission');
-        }
 
+    conn.query(query, [submissionId], (err, result) => {
+        if (err) {
+    console.error('Error deleting submission:', err);
+    return res.status(500).send('Failed to delete submission');
+        }
+        
         console.log('Deleted submission with ID:', submissionId);
         res.send('Submission deleted successfully');
     });
