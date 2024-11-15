@@ -520,7 +520,22 @@ app.delete('/admin/moderator/delete/:id', (req, res) => {
         res.send('Submission deleted successfully');
     });
 });
+// Update submission route
+app.put('/admin/moderator/edit/:id', (req, res) => {
+    const submissionId = req.params.id;
+    const { emotion, category, skill_name, skill_description } = req.body;
 
+    const updateQuery = `UPDATE submissions SET emotion = ?, emo_categ = ?, skill_name = ?, skill_info = ? WHERE id = ?`;
+    const params = [emotion, category, skill_name, skill_description, submissionId];
+
+    conn.query(updateQuery, params, (err, result) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Failed to update submission' });
+        }
+        res.status(200).json({ success: true });
+    });
+});
 
 app.get('/logout',(req,res) => {
     req.session.destroy();

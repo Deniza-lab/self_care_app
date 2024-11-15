@@ -155,6 +155,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     
     <script type="text/javascript">
+        //filter by type
                         console.log("JavaScript is loaded");
                         function filterByType() {
                             console.log("filterByType is called");
@@ -215,6 +216,41 @@ const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
             console.error('Error deleting submission:', error);
         });
     }
+    //EDIT BUTTONS
+    function editEntry(submissionId) {
+    const submission = document.getElementById(`emoSelect-${submissionId}`);
+    const emotion = submission.closest('tr').querySelector('td:nth-child(3)').textContent;
+    const category = submission.closest('tr').querySelector('td:nth-child(4)').textContent;
+    const skillName = submission.closest('tr').querySelector('td:nth-child(6)').textContent;
+    const skillDescription = submission.closest('tr').querySelector('td:nth-child(7)').textContent;
+    document.getElementById('editId').value = submissionId;
+    document.getElementById('editEmotion').value = emotion;
+    document.getElementById('editCategory').value = category;
+    document.getElementById('editSkillName').value = skillName;
+    document.getElementById('editSkillDescription').value = skillDescription;
+    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    editModal.show();
+}
+//saving changes
+function saveChanges() {
+    const submissionId = document.getElementById('editId').value;
+    const updatedData = {
+        emotion: document.getElementById('editEmotion').value,
+        category: document.getElementById('editCategory').value,
+        skill_name: document.getElementById('editSkillName').value,
+        skill_description: document.getElementById('editSkillDescription').value
+    };
+
+    fetch(`/admin/moderator/edit/${submissionId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedData)
+    })
+    .then(response => response.ok ? location.reload() : alert('Failed to update submission'))
+    .catch(error => console.error('Error updating submission:', error));
+}
 </script>                 
 </body>  
 </html>
