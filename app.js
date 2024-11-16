@@ -481,7 +481,7 @@ app.get('/admin/moderator', function (req, res, next) {
             : `SELECT * FROM submissions`;
         const params = filter ? [filter] : [];
 
-        const categoryQuery = `SELECT emo_id, emo_categ FROM emotions_categories`;
+        const categoryQuery = `SELECT emo_categ FROM emotions_categories`;
 
         conn.query(sql, params, function (err, result) {
             if (err) {
@@ -537,6 +537,155 @@ app.put('/admin/moderator/edit/:id', (req, res) => {
     });
 });
 
+// SUBMIT route
+app.post('/moderator/submit', (req, res) => {
+    const { sub_type, emotion, emo_categ, skill_name, skill_info } = req.body;
+    let emo_id, skill_id;
+
+    // Function to send a response only once after all processing is done
+    function sendResponse(message, status = 200) {
+        res.status(status).json({ message });
+    }
+
+    // 1. Handle new emotion
+    if (sub_type === 'New Emotion' || sub_type === 'New Emotion and Skill') {
+        console.log('Submitting an entry for New Emotion');
+
+        // Query to get emo_id based on emo_categ
+        conn.query(
+            'SELECT emo_id FROM emotions_categories WHERE emo_categ = ?',
+            [emo_categ],
+            (err, categoryResult) => {
+                if (err) {
+                    console.error(err);
+                    return sendResponse('Internal server error', 500);
+                }
+
+                if (categoryResult.length === 0) {
+                    return sendResponse('Invalid emotion category', 400);
+                }
+
+                emo_id = categoryResult[0].emo_id;
+
+                // Query to check if the emotion already exists for the given emo_id
+                conn.query(
+                    'SELECT emo_id FROM emotions WHERE emotion = ? AND emo_id = ?',
+                    [emotion, emo_id],
+                    (err, existingEmotion) => {
+                        if (err) {
+                            console.error(err);
+                            return sendResponse('Internal server error', 500);
+                        }
+
+                        if (existingEmotion.length > 0) {
+                            // Emotion already exists, so use existing emo_id
+                            emo_id = existingEmotion[0].emo_id;
+                            if (sub_type === 'New Emotion and Skill') {
+                                // Proceed with adding the new skill after emotion check
+                                addNewSkill(emo_id);
+                            } else {
+                                // For "New Emotion", just respond
+                                sendResponse('New Emotion already exists');
+                            }
+                        } else {
+                            // Insert new emotion if it doesn't exist
+                            conn.query(
+                                'INSERT INTO emotions (emotion, emo_id) VALUES (?, ?)',
+                                [emotion, emo_id],
+                                (err, result) => {
+                                    if (err) {
+                                        console.error(err);
+                                        return sendResponse('Internal server error', 500);
+                                    }
+
+                                    console.log('New emotion inserted');
+                                    if (sub_type === 'New Emotion and Skill') {
+                                        // Proceed with adding the new skill after emotion insertion
+                                        addNewSkill(emo_id);
+                                    } else {
+                                        sendResponse('New Emotion inserted successfully');
+                                    }
+                                }
+                            );
+                        }
+                    }
+                );
+            }
+        );
+    }
+
+     // 2. Handle new skill for existing emotion
+     if (sub_type === 'New Skill for Existing Emotion') {
+        console.log('Submitting an entry for New Skill for Existing Emotion');
+
+        // Retrieve emo_id for the existing emotion
+        conn.query(
+            'SELECT emo_id FROM emotions_categories WHERE emo_categ = ?',
+            [emo_categ],
+            (err, emoResult) => {
+                if (err) {
+                    console.error(err);
+                    return sendResponse('Internal server error', 500);
+                }
+
+                if (emoResult.length === 0) {
+                    return sendResponse('Emotion does not exist for the specified category', 400);
+                }
+
+                emo_id = emoResult[0].emo_id;
+
+                addNewSkill(emo_id);
+            }
+        );
+    }
+
+    // Function to add a new skill and link it to an emotion
+    function addNewSkill(emo_id) {
+        console.log('Submitting an entry for New Skill');
+
+        conn.query(
+            'INSERT INTO skills (skill_name, skill_info) VALUES (?, ?)',
+            [skill_name, skill_info],
+            (err, skillResult) => {
+                if (err) {
+                    console.error(err);
+                    return sendResponse('Internal server error', 500);
+                }
+
+                skill_id = skillResult.insertId;
+
+                conn.query(
+                    'INSERT INTO emotions_skills (emo_id, skill_id) VALUES (?, ?)',
+                    [emo_id, skill_id],
+                    (err) => {
+                        if (err) {
+                            console.error(err);
+                            return sendResponse('Internal server error', 500);
+                        }
+
+                        console.log('New skill linked to emotion');
+                        sendResponse('New Skill for Existing Emotion submitted successfully');
+                    }
+                );
+            }
+        );
+    }
+
+ conn.query(
+     'DELETE FROM submissions WHERE emotion = ? AND emo_categ = ? AND skill_name = ? AND skill_info = ?',
+       [emotion, emo_categ, skill_name, skill_info],
+      (err) => {
+           if (err) {
+              console.error(err);
+           } else {
+              console.log('Submission cleaned up');
+          }
+       }
+   );
+});
+
+
+//Logout
 app.get('/logout',(req,res) => {
     req.session.destroy();
     res.redirect('/');

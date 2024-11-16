@@ -38,7 +38,6 @@
                           <th scope="col">User Id</th>
                           <th scope="col">Emotion</th>
                           <th scope="col">Category</th>
-                          <th scope="col">Category code</th>
                           <th scope="col">Skill name</th>
                           <th scope="col">Skill description</th>
                           <th scope="col">Submission type</th>
@@ -49,21 +48,11 @@
                     <tbody>
                       <% if (submissions.length > 0) { %>
                           <% submissions.forEach(function(submission) { %>
-                              <tr>
+                              <tr data-id="<%= submission.id %>">
                                   <th scope="row"><%= submission.id %></th>
                                   <td><%= submission.user_id %></td>
                                   <td><%= submission.emotion %></td>
                                   <td><%= submission.emo_categ %></td>
-                                  <td>
-                                    <select class="form-select" id="emoSelect-<%= submission.id %>">
-                                      <% categories.forEach(function(category) { %>
-                                        <option value="<%= category.emo_categ %>" 
-                                          <%= submission.emo_categ === category.emo_categ ? 'selected' : '' %>>
-                                        <%= category.emo_id %>
-                                      </option>
-                                      <% }); %>
-                                    </select>
-                                  </td>
                                   <td><%= submission.skill_name %></td>
                                   <td><%= submission.skill_info %></td>
                                   <td><%= submission.sub_type %></td>
@@ -218,16 +207,19 @@ const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     }
     //EDIT BUTTONS
     function editEntry(submissionId) {
-    const submission = document.getElementById(`emoSelect-${submissionId}`);
-    const emotion = submission.closest('tr').querySelector('td:nth-child(3)').textContent;
-    const category = submission.closest('tr').querySelector('td:nth-child(4)').textContent;
-    const skillName = submission.closest('tr').querySelector('td:nth-child(6)').textContent;
-    const skillDescription = submission.closest('tr').querySelector('td:nth-child(7)').textContent;
+        const row = document.querySelector(`tr[data-id="${submissionId}"]`);
+
+    const emotion = row.querySelector('td:nth-child(3)').textContent; 
+    const category = row.querySelector('td:nth-child(4)').textContent; 
+    const skillName = row.querySelector('td:nth-child(5)').textContent; 
+    const skillDescription = row.querySelector('td:nth-child(6)').textContent; 
+
     document.getElementById('editId').value = submissionId;
     document.getElementById('editEmotion').value = emotion;
     document.getElementById('editCategory').value = category;
     document.getElementById('editSkillName').value = skillName;
     document.getElementById('editSkillDescription').value = skillDescription;
+
     const editModal = new bootstrap.Modal(document.getElementById('editModal'));
     editModal.show();
 }
@@ -251,6 +243,47 @@ function saveChanges() {
     .then(response => response.ok ? location.reload() : alert('Failed to update submission'))
     .catch(error => console.error('Error updating submission:', error));
 }
+
+//SUBMIT BUTTONS
+async function submitEntry(submissionId) {
+  try {
+    const row = document.querySelector(`tr[data-id="${submissionId}"]`);
+
+    const sub_type = row.querySelector('td:nth-child(7)').textContent.trim();  // Submission type
+    const emotion = row.querySelector('td:nth-child(3)').textContent.trim();   // Emotion
+    const emo_categ = row.querySelector('td:nth-child(4)').textContent.trim(); // Category
+    const skill_name = row.querySelector('td:nth-child(5)').textContent.trim(); // Skill name
+    const skill_info = row.querySelector('td:nth-child(6)').textContent.trim(); // Skill description
+
+
+    // Send data to the backend
+    const response = await fetch('/moderator/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sub_type,
+        emotion,
+        emo_categ,
+        skill_name,
+        skill_info,
+      }),
+    });
+
+    if (response.ok) {
+      alert('Submission successfully processed!');
+      row.remove();
+    } else {
+      const error = await response.json();
+      alert(`Error: ${error.message}`);
+    }
+  } catch (error) {
+    console.error('Error submitting entry:', error);
+    alert('An unexpected error occurred.');
+  }
+}
+
 </script>                 
 </body>  
 </html>
