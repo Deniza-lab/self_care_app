@@ -289,6 +289,7 @@ app.get('/user/skills', function (req, res, next) {
 //ADD EMO+SKILL to MY RECORD
 app.post('/user/records', function (req, res) {
     if (req.session.loggedin) {
+        
         const userId = req.session.userId; 
         const emotion = req.body.emotion; 
         const skillName = req.body.skill_name;
@@ -306,6 +307,7 @@ app.post('/user/records', function (req, res) {
             }
             res.redirect(req.session.previousUrl || '/user/emotions'); 
         });
+        console.log("record added")
     } else {
         res.send('Please login to record skills!');
     }
