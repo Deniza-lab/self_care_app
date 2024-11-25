@@ -59,7 +59,7 @@
                                   <td><%= submission.date_time %></td>
                                   <td>
                                       <button class="btn btn-primary btn-sm" onclick="editEntry(<%= submission.id %>)">Edit</button>
-                                      <button class="btn btn-danger delete-btn" data-id="<%= submission.id %>" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                      <button class="btn btn-danger btn-sm delete-btn" data-id="<%= submission.id %>" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                         Delete
                                       </button>
                                       <button class="btn btn-success btn-sm" onclick="submitEntry(<%= submission.id %>)">Submit</button>

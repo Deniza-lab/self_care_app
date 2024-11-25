@@ -142,6 +142,7 @@ app.get('/dashboard', function (req, res, next) {
 	if (req.session.loggedin){
         const userRole = req.session.userrole;
 		const userId = req.session.userId;
+        const username = req.session.email
         console.log("Userrole:", userRole);
 
 		if(userRole === "user"){
@@ -154,7 +155,7 @@ app.get('/dashboard', function (req, res, next) {
                     return next(error);
                 }
                 
-                res.render('user/myRecord', { records: results });
+                res.render('user/myRecord', { records: results, username: req.session.email });
             });
         }
         else if (userRole === "admin") {
@@ -171,6 +172,7 @@ app.get('/user/myRecord', function (req, res, next) {
 	if (req.session.loggedin){
 		if(req.session.userrole === "user"){
             const userId = req.session.userId;
+            const username = req.session.email;
             console.log("User ID:", userId);
             const query = "SELECT date_time, emotion, skill_name, skill_info FROM records WHERE user_id = ?";
             conn.query(query, [userId], function (error, results) {
@@ -178,7 +180,7 @@ app.get('/user/myRecord', function (req, res, next) {
                     console.error("Database error:", error);
                     return next(error);
                 }       
-                res.render('user/myRecord', { records: results });
+                res.render('user/myRecord', { records: results, username: req.session.email });
             });
         }
 		else{
@@ -190,19 +192,6 @@ app.get('/user/myRecord', function (req, res, next) {
 	}
 });
 
-app.get('/user/myProfile', function (req, res, next) {
-	if (req.session.loggedin){
-		if(req.session.userrole === "user"){
-			res.render('user/myProfile');
-		}
-		else{
-			res.send('Page not found for this user ');
-		}
-	}
-	else {		
-		res.send('Please login to view this page!');
-	}
-});
 //LOGGED IN EMOTIONS PAGE 
 app.get('/user/emotions', function (req, res, next) {
     if (req.session.loggedin) {
