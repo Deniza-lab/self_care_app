@@ -50,7 +50,9 @@
                     <% if (emoIdData[emoId] && emoIdData[emoId].length > 0) { %>
                     <table class="table table-borderless">
                       <tbody>
-                        <% emoIdData[emoId].forEach(function(emotion) { %>
+                        <% emoIdData[emoId].sort((a, b) =>
+                        a.emotion.localeCompare(b.emotion));
+                        emoIdData[emoId].forEach(function(emotion) { %>
                         <tr>
                           <td><%= emotion.emotion %></td>
                           <td>

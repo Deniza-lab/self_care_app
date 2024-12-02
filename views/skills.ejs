@@ -38,6 +38,25 @@
             <% } %>
         </tbody>
     </table>
+
+    <div class="pagination justify-content-center">
+        <% if (currentPage > 1) { %>
+            <a href="/skills/<%= emoId %>?page=<%= currentPage - 1 %>&limit=<%= limit %>" class="btn btn-outline-primary mx-1">Previous</a>
+
+        <% } %>
+        <% for (let i = 1; i <= totalPages; i++) { %>
+            <a href="/skills/<%= emoId %>?page=<%= i %>&limit=<%= limit %>" 
+               class="btn <%= i === currentPage ? 'btn-primary' : 'btn-outline-primary' %> mx-1">
+                <%= i %>
+            </a>
+        <% } %>
+        
+        <% if (currentPage < totalPages) { %>
+            <a href="/skills/<%= emoId %>?page=<%= currentPage + 1 %>&limit=<%= limit %>" class="btn btn-outline-primary mx-1">Next</a>
+        <% } %>
+        
+    </div>
+
     <a href="/emotions" class="btn btn-secondary">Back to Emotions</a>
     
 </div>

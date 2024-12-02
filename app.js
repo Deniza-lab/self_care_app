@@ -102,10 +102,18 @@ app.get('/skills', function (req, res) {
     });
 });
 
+
 //SKILLS FOR ALL EMO GROUPS
 app.get('/skills/:emo_id', function (req, res) {
-    const emoId = req.params.emo_id; 
-    const emotionName = req.query.emotion_name; 
+    const emoId = req.params.emo_id;
+    const emotionName = req.query.emotion_name;
+
+    // Pagination parameters
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 10; 
+    const offset = (page - 1) * limit;
+
+    // Get the emotion name
     const sqlEmotion = `
     SELECT emotion 
     FROM emotions 
@@ -118,24 +126,51 @@ app.get('/skills/:emo_id', function (req, res) {
         if (emotionResult.length === 0) {
             return res.status(404).send('No emotions found for this category');
         }
-        const emotionTitle = emotionResult[0].emotion; 
-        const sqlSkills = `
-        SELECT skills.skill_name, skills.skill_info 
+        const emotionTitle = emotionResult[0].emotion;
+
+        // Get the total count of skills for pagination
+        const sqlCount = `
+        SELECT COUNT(*) AS total 
         FROM emotions_skills 
         JOIN skills ON emotions_skills.skill_id = skills.skill_id 
-        WHERE emotions_skills.emo_id = ?`; 
-        conn.query(sqlSkills, [emoId], function (err, skillsResult) {
+        WHERE emotions_skills.emo_id = ?`;
+
+        conn.query(sqlCount, [emoId], function (err, countResult) {
             if (err) {
                 console.error('Database error:', err);
                 return res.status(500).send('Database error');
             }
-            res.render('skills', { 
-                title: 'Skills to manage feeling ' + (emotionName || emotionTitle), 
-                skills: skillsResult 
+
+            const totalSkills = countResult[0].total;
+            const totalPages = Math.ceil(totalSkills / limit);
+
+            // Get paginated skills
+            const sqlSkills = `
+            SELECT skills.skill_name, skills.skill_info 
+            FROM emotions_skills 
+            JOIN skills ON emotions_skills.skill_id = skills.skill_id 
+            WHERE emotions_skills.emo_id = ? 
+            LIMIT ? OFFSET ?`;
+
+            conn.query(sqlSkills, [emoId, limit, offset], function (err, skillsResult) {
+                if (err) {
+                    console.error('Database error:', err);
+                    return res.status(500).send('Database error');
+                }
+
+                res.render('skills', {
+                    title: 'Skills to manage feeling ' + (emotionName || emotionTitle),
+                    skills: skillsResult,
+                    currentPage: page,
+                    totalPages,
+                    limit,
+                    emoId
+                });
             });
         });
     });
 });
+
 
 // LOGGED IN PAGES
 app.get('/dashboard', function (req, res, next) {
@@ -146,17 +181,37 @@ app.get('/dashboard', function (req, res, next) {
         console.log("Userrole:", userRole);
 
 		if(userRole === "user"){
-            console.log("User ID:", userId);
+            const page = parseInt(req.query.page) || 1; // Current page, default is 1
+            const limit = parseInt(req.query.limit) || 10; // Items per page, default is 10
+            const offset = (page - 1) * limit;
+
+            const countQuery = "SELECT COUNT(*) AS total FROM records WHERE user_id = ?";
             
-            const query = "SELECT date_time, emotion, skill_name, skill_info FROM records WHERE user_id = ?";
-            conn.query(query, [userId], function (error, results) {
+            const query = "SELECT date_time, emotion, skill_name, skill_info FROM records WHERE user_id = ? LIMIT ? OFFSET ?";
+            conn.query(countQuery, [userId], function (countError, countResults) {
+                if (countError) {
+                    console.error("Database error:", countError);
+                    return next(countError);
+                }
+
+                const totalRecords = countResults[0].total;
+                const totalPages = Math.ceil(totalRecords / limit);
+            
+            conn.query(query, [userId, limit, offset], function (error, results) {
                 if (error) {
                     console.error("Database error:", error);
                     return next(error);
                 }
                 
-                res.render('user/myRecord', { records: results, username: req.session.email });
+                res.render('user/myRecord', { 
+                    records: results, 
+                    username: req.session.email, 
+                    currentPage: page,
+                    totalPages,
+                    limit 
+                });
             });
+        });
         }
         else if (userRole === "admin") {
 			res.redirect('/admin/moderator');
