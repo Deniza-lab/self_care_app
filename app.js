@@ -225,24 +225,50 @@ app.get('/dashboard', function (req, res, next) {
 
 app.get('/user/myRecord', function (req, res, next) {
 	if (req.session.loggedin){
-		if(req.session.userrole === "user"){
-            const userId = req.session.userId;
-            const username = req.session.email;
-            console.log("User ID:", userId);
-            const query = "SELECT date_time, emotion, skill_name, skill_info FROM records WHERE user_id = ?";
-            conn.query(query, [userId], function (error, results) {
+        const userRole = req.session.userrole;
+		const userId = req.session.userId;
+        const username = req.session.email
+        console.log("Userrole:", userRole);
+
+		if(userRole === "user"){
+            const page = parseInt(req.query.page) || 1; // Current page, default is 1
+            const limit = parseInt(req.query.limit) || 10; // Items per page, default is 10
+            const offset = (page - 1) * limit;
+
+            const countQuery = "SELECT COUNT(*) AS total FROM records WHERE user_id = ?";
+            
+            const query = "SELECT date_time, emotion, skill_name, skill_info FROM records WHERE user_id = ? LIMIT ? OFFSET ?";
+            conn.query(countQuery, [userId], function (countError, countResults) {
+                if (countError) {
+                    console.error("Database error:", countError);
+                    return next(countError);
+                }
+
+                const totalRecords = countResults[0].total;
+                const totalPages = Math.ceil(totalRecords / limit);
+            
+            conn.query(query, [userId, limit, offset], function (error, results) {
                 if (error) {
                     console.error("Database error:", error);
                     return next(error);
-                }       
-                res.render('user/myRecord', { records: results, username: req.session.email });
+                }
+                
+                res.render('user/myRecord', { 
+                    records: results, 
+                    username: req.session.email, 
+                    currentPage: page,
+                    totalPages,
+                    limit 
+                });
             });
+        });
         }
-		else{
+        else if (userRole === "admin") {
+			res.redirect('/admin/moderator');
+        } else {
 			res.send('Page not found for this user ');
 		}
-	}
-	else {		
+	} else {		
 		res.send('Please login to view this page!');
 	}
 });
